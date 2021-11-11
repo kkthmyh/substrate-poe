@@ -22,3 +22,12 @@
 
 ##  3.转移存证
 
+- 执行poe的transfer函数，转移存证
+
+  ![avatar](./img/alice.png)
+  
+  ![avatar](./img/alictobob.png)
+
+- 检查存证发现alice的存证已被转移到bob账户
+  
+  ![avatar](./img/bob.png)
