@@ -19,7 +19,7 @@ pub mod pallet{
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
-	
+
 	/// 存储
 	#[pallet::storage]
 	#[pallet::getter(fn proofs)]
@@ -32,6 +32,7 @@ pub mod pallet{
 	pub enum Event<T: Config> {
 		ClaimCreated(T::AccountId,Vec<u8>),
 		ClaimRevoked(T::AccountId,Vec<u8>),
+		ClaimTransfered(T::AccountId,Vec<u8>),
 	}
 
 	/// error处理
@@ -77,5 +78,21 @@ pub mod pallet{
 			Self::deposit_event(Event::ClaimRevoked(sender,claim));
 			Ok(().into())
 		}
+
+		#[pallet::weight(0)]
+		/// 转移存证
+		pub fn transfer_claim(origin:OriginFor<T>, claim: Vec<u8>, recevier: T::AccountId) -> DispatchResultWithPostInfo {
+			// 验证是否签名
+			let sender = ensure_signed(origin)?;
+			// 校验存证是否存在
+			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
+			// 获取存证所有人
+			let (owner,_) = Proofs::<T>::get(&claim).ok_or(Error::<T>::ClaimNotExist)?;
+			ensure!(owner == sender, Error::<T>::NotClaimOwner);
+			// 转移存证
+			Proofs::<T>::insert(&claim, (recevier, frame_system::Module::<T>::block_number()));
+			Ok(().into())
+		}
+
 	}
 }
