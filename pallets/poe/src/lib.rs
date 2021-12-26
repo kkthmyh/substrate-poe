@@ -1,5 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-
+mod mock;
+mod tests;
 // 存证模块
 pub use pallet::*;
 
@@ -84,7 +85,7 @@ pub mod pallet {
 
         #[pallet::weight(0)]
         /// 转移存证
-        pub fn transfer_claim(origin: OriginFor<T>, claim: Vec<u8>, recevier: T::AccountId) -> DispatchResultWithPostInfo {
+        pub fn transfer_claim(origin: OriginFor<T>, claim: Vec<u8>, dest: T::AccountId) -> DispatchResultWithPostInfo {
             // 验证是否签名
             let sender = ensure_signed(origin)?;
             // 校验存证是否存在
@@ -93,7 +94,8 @@ pub mod pallet {
             let (owner, _) = Proofs::<T>::get(&claim).ok_or(Error::<T>::ClaimNotExist)?;
             ensure!(owner == sender, Error::<T>::NotClaimOwner);
             // 转移存证
-            Proofs::<T>::insert(&claim, (recevier, frame_system::Module::<T>::block_number()));
+            Proofs::<T>::insert(&claim, (dest, frame_system::Module::<T>::block_number()));
+
             Ok(().into())
         }
     }
