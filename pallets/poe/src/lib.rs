@@ -1,6 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+
+#[cfg(test)]
 mod mock;
+#[cfg(test)]
 mod tests;
+
 // 存证模块
 pub use pallet::*;
 
@@ -18,6 +22,7 @@ pub mod pallet {
     #[pallet::config]
     pub trait Config: frame_system::Config {
         type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+        type MaxClaimLength: Get<u16>;
     }
 
     #[pallet::pallet]
@@ -45,6 +50,7 @@ pub mod pallet {
         ProofAlreadyExist,
         ClaimNotExist,
         NotClaimOwner,
+        ClaimLengthExceeded,
     }
 
     #[pallet::hooks]
@@ -58,7 +64,9 @@ pub mod pallet {
         pub fn create_claim(origin: OriginFor<T>, claim: Vec<u8>) -> DispatchResultWithPostInfo {
             // 判断是否是签名用户
             let sender = ensure_signed(origin)?;
-            // 判断存证是否已经存在
+            // 判断存证长度是否超过限制
+            ensure!(claim.len() as u16 <= T::MaxClaimLength::get(),Error::<T>::ClaimLengthExceeded);
+            // 判断存证是否已经存
             ensure!(!Proofs::<T>::contains_key(&claim),Error::<T>::ProofAlreadyExist);
             // 若不存在进行insert
             Proofs::<T>::insert(&claim, (sender.clone(), frame_system::Pallet::<T>::block_number()));
