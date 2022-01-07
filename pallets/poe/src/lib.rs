@@ -102,7 +102,7 @@ pub mod pallet {
             let (owner, _) = Proofs::<T>::get(&claim).ok_or(Error::<T>::ClaimNotExist)?;
             ensure!(owner == sender, Error::<T>::NotClaimOwner);
             // 转移存证
-            Proofs::<T>::insert(&claim, (dest, frame_system::Module::<T>::block_number()));
+            Proofs::<T>::insert(&claim, (dest, frame_system::Pallet::<T>::block_number()));
 
             Ok(().into())
         }
